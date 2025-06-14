@@ -4,87 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Currency Converter</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .swap-button:hover {
-            transform: scale(1.1);
-            transition: transform 0.2s ease-in-out;
-        }
-        .input-field {
-            transition: all 0.3s ease-in-out;
-        }
-        .input-field:focus {
-            transform: scale(1.02);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center p-4">
-    <div class="container bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Currency Converter</h1>
-        
-        <div class="currency-container flex flex-col gap-4">
-            <div class="flex flex-col">
-                <label for="currency-first" class="text-sm font-medium text-gray-600 mb-1">From</label>
-                <select id="currency-first" class="input-field p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="AUD">AUD - Australian Dollar</option>
-                    <option value="CAD">CAD - Canadian Dollar</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="GBP">GBP - British Pound</option>
-                    <option value="INR">INR - Indian Rupee</option>
-                    <option value="JPY">JPY - Japanese Yen</option>
-                    <option value="USD" selected>USD - US Dollar</option>
-                </select>
-            </div>
-            <div class="flex justify-center">
-                <button id="swap-button" class="swap-button bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m-16 6h12m0 0l-4 4m4-4l-4-4"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="flex flex-col">
-                <label for="currency-second" class="text-sm font-medium text-gray-600 mb-1">To</label>
-                <select id="currency-second" class="input-field p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="AUD">AUD - Australian Dollar</option>
-                    <option value="CAD">CAD - Canadian Dollar</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="GBP">GBP - British Pound</option>
-                    <option value="INR">INR - Indian Rupee</option>
-                    <option value="JPY" selected>JPY - Japanese Yen</option>
-                    <option value="USD">USD - US Dollar</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="mt-6 flex flex-col gap-4">
+<body>
+    <div class="container">
+        <h1>Currency Converter</h1>
+        <div class="currency-container">
             <div>
-                <label for="worth-first" class="text-sm font-medium text-gray-600">Amount</label>
-                <input type="number" id="worth-first" class="input-field w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" value="1" min="0" step="0.01">
+                <label for="currency-first">From</label>
+                <select id="currency-first"></select>
             </div>
             <div>
-                <label for="worth-second" class="text-sm font-medium text-gray-600">Converted Amount</label>
-                <input type="number" id="worth-second" class="input-field w-full p-3 rounded-lg border border-gray-300 bg-gray-100" readonly>
+                <button id="swap-button">↔</button>
+            </div>
+            <div>
+                <label for="currency-second">To</label>
+                <select id="currency-second"></select>
             </div>
         </div>
-
-        <div id="exchange-rate" class="mt-4 text-lg font-semibold text-gray-700 text-center">
+        <div class="currency-container">
+            <div>
+                <label for="worth-first">Amount</label>
+                <input type="number" id="worth-first" value="1">
+            </div>
+            <div>
+                <label for="worth-second">Converted Amount</label>
+                <input type="number" id="worth-second" readonly>
+            </div>
+        </div>
+        <div class="exchange-rate" id="exchange-rate">
             Loading exchange rate...
         </div>
-
-        <div id="error-message" class="mt-2 text-red-500 text-center hidden">
+        <div id="error-message" class="hidden">
             Failed to fetch exchange rate. Please try again.
         </div>
-
-        <div class="mt-4 text-sm text-gray-500 text-center">
-            Powered by Frankfurter API
-        </div>
+        <span>Powered by <a href="https://www.frankfurter.app/" target="_blank">Frankfurter API</a></span>
     </div>
-
     <script src="index.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-body{
+body {
     background-color: yellow;
     display: flex;
     height: 100vh;
@@ -9,7 +9,7 @@ body{
     padding: 0;
 }
 
-.container{
+.container {
     background-color: darkcyan;
     color: aliceblue;
     padding: 10px;
@@ -17,18 +17,17 @@ body{
     text-align: center;
 }
 
-
-.currency-container{
+.currency-container {
     padding: 20px;
     display: flex;
     justify-content: space-between;
 }
 
-.currency-container select{
+.currency-container select {
     padding: 10px;
 }
 
-.currency-container input{
+.currency-container input {
     border: 0;
     background: transparent;
     font-size: 25px;
@@ -36,12 +35,12 @@ body{
     color: aliceblue;
 }
 
-.exchange-rate{
+.exchange-rate {
     font-size: 16px;
     font-weight: 600;
 }
 
 select:focus,
-input:focus{
+input:focus {
     outline: 0;
 }
