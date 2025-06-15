@@ -60,12 +60,4 @@ Multi-currency conversion.
 Custom chart time ranges.
 Local rate caching for offline use.
 
-📜 License
-MIT License. See LICENSE for details.
-🙌 Credits
-
-Frankfurter API
-Choices.js
-Chart.js
-chartjs-plugin-zoom
 
