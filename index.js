@@ -7,9 +7,11 @@ const swapButton = document.getElementById("swap-button");
 const errorMessageEl = document.getElementById("error-message");
 const datePickerEl = document.getElementById("date-picker");
 const themeToggleEl = document.getElementById("theme-toggle");
+const favoritesButtonEl = document.getElementById("favorites-button");
+const rateChartEl = document.getElementById("rate-chart");
 let rateChart;
 
-// Comprehensive fallback currency list
+// Fallback currency list
 const fallbackCurrencies = {
     AUD: "Australian Dollar",
     BGN: "Bulgarian Lev",
@@ -46,7 +48,7 @@ const fallbackCurrencies = {
     ZAR: "South African Rand"
 };
 
-// Initialize Choices.js for searchable dropdowns
+// Initialize Choices.js
 const choicesFirst = new Choices(currencyFirstEl, {
     searchEnabled: true,
     itemSelectText: '',
@@ -57,62 +59,19 @@ const choicesSecond = new Choices(currencySecondEl, {
     searchEnabled: true,
     itemSelectText: '',
     shouldSort: false,
-    maxItemCount: 5,
     allowHTML: true
 });
 
-async function populateCurrencies() {
+// API and Data Functions
+async function fetchCurrencies() {
     try {
-        console.log("Fetching currencies from API...");
         const response = await fetch("https://api.frankfurter.app/currencies");
         if (!response.ok) throw new Error(`Failed to fetch currencies: ${response.status}`);
-        const currencies = await response.json();
-        console.log("Currencies fetched:", currencies);
-
-        const favorites = JSON.parse(localStorage.getItem("favoriteCurrencies") || "[]");
-        const currencyOptions = Object.entries(currencies)
-            .sort(([codeA], [codeB]) => {
-                const isFavA = favorites.includes(codeA);
-                const isFavB = favorites.includes(codeB);
-                if (isFavA && !isFavB) return -1;
-                if (!isFavA && isFavB) return 1;
-                return codeA.localeCompare(codeB);
-            })
-            .map(([code, name]) => ({
-                value: code,
-                label: `<img src="https://flagcdn.com/16x12/${code.slice(0, 2).toLowerCase()}.png" alt="${code} flag" class="flag-icon"> ${code} - ${name}`,
-                customProperties: { isFavorite: favorites.includes(code) }
-            }));
-
-        choicesFirst.setChoices(currencyOptions, 'value', 'label', true);
-        choicesSecond.setChoices(currencyOptions, 'value', 'label', true);
-        choicesFirst.setChoiceByValue("USD");
-        choicesSecond.setChoiceByValue(["EUR", "LKR", "SAR"]);
-        console.log("Dropdowns populated with", currencyOptions.length, "currencies");
+        return await response.json();
     } catch (error) {
         console.error("Error fetching currencies:", error.message);
         showError(`Failed to load currencies: ${error.message}. Using fallback currencies.`);
-
-        const favorites = JSON.parse(localStorage.getItem("favoriteCurrencies") || "[]");
-        const fallbackOptions = Object.entries(fallbackCurrencies)
-            .sort(([codeA], [codeB]) => {
-                const isFavA = favorites.includes(codeA);
-                const isFavB = favorites.includes(codeB);
-                if (isFavA && !isFavB) return -1;
-                if (!isFavA && isFavB) return 1;
-                return codeA.localeCompare(codeB);
-            })
-            .map(([code, name]) => ({
-                value: code,
-                label: `<img src="https://flagcdn.com/16x12/${code.slice(0, 2).toLowerCase()}.png" alt="${code} flag" class="flag-icon"> ${code} - ${name}`,
-                customProperties: { isFavorite: favorites.includes(code) }
-            }));
-
-        choicesFirst.setChoices(fallbackOptions, 'value', 'label', true);
-        choicesSecond.setChoices(fallbackOptions, 'value', 'label', true);
-        choicesFirst.setChoiceByValue("USD");
-        choicesSecond.setChoiceByValue(["EUR", "LKR", "SAR"]);
-        console.log("Fallback dropdowns populated with", fallbackOptions.length, "currencies");
+        return fallbackCurrencies;
     }
 }
 
@@ -137,10 +96,14 @@ async function fetchRate(fromCurrency, toCurrency, date = 'latest', retries = 3,
 }
 
 async function fetchHistoricalRates(fromCurrency, toCurrency) {
+    if (fromCurrency === toCurrency) {
+        console.log("Skipping historical rates fetch: same currency pair");
+        return [];
+    }
     try {
         const endDate = new Date("2025-06-14");
         const startDate = new Date(endDate);
-        startDate.setDate(endDate.getDate() - 7);
+        startDate.setDate(endDate.getDate() - 30);
         const response = await fetch(
             `https://api.frankfurter.app/${startDate.toISOString().split('T')[0]}..${endDate.toISOString().split('T')[0]}?from=${fromCurrency}&to=${toCurrency}`
         );
@@ -152,8 +115,33 @@ async function fetchHistoricalRates(fromCurrency, toCurrency) {
         }));
     } catch (error) {
         console.error("Error fetching historical rates:", error.message);
+        showError(`Failed to fetch historical rates: ${error.message}. Please try a different currency pair.`);
         return [];
     }
+}
+
+// UI Update Functions
+async function populateCurrencies() {
+    const currencies = await fetchCurrencies();
+    const favorites = JSON.parse(localStorage.getItem("favoriteCurrencies") || "[]");
+    const currencyOptions = Object.entries(currencies)
+        .sort(([codeA], [codeB]) => {
+            const isFavA = favorites.includes(codeA);
+            const isFavB = favorites.includes(codeB);
+            if (isFavA && !isFavB) return -1;
+            if (!isFavA && isFavB) return 1;
+            return codeA.localeCompare(codeB);
+        })
+        .map(([code, name]) => ({
+            value: code,
+            label: `<img src="https://flagcdn.com/16x12/${code.slice(0, 2).toLowerCase()}.png" alt="${code} flag" class="flag-icon"> ${code} - ${name}`,
+            customProperties: { isFavorite: favorites.includes(code) }
+        }));
+
+    choicesFirst.setChoices(currencyOptions, 'value', 'label', true);
+    choicesSecond.setChoices(currencyOptions, 'value', 'label', true);
+    choicesFirst.setChoiceByValue("USD");
+    choicesSecond.setChoiceByValue("EUR");
 }
 
 async function updateRate() {
@@ -164,39 +152,31 @@ async function updateRate() {
         conversionTableEl.innerHTML = "";
 
         const fromCurrency = currencyFirstEl.value;
-        let toCurrencies = Array.isArray(currencySecondEl.value) ? currencySecondEl.value : (currencySecondEl.value ? [currencySecondEl.value] : ["EUR"]);
-        if (toCurrencies.length === 0) {
-            toCurrencies = ["EUR"];
-            choicesSecond.setChoiceByValue(["EUR"]);
-        }
+        const toCurrency = currencySecondEl.value || "EUR";
         const date = datePickerEl.value || 'latest';
         const amount = parseFloat(worthFirstEl.value) || 1;
 
-        const rates = await Promise.all(
-            toCurrencies.map(async (toCurrency) => {
-                const rate = await fetchRate(fromCurrency, toCurrency, date);
-                return { toCurrency, rate, converted: (amount * rate).toFixed(2) };
-            })
-        );
+        if (amount <= 0) {
+            throw new Error("Amount must be greater than 0");
+        }
 
-        exchangeRateEl.textContent = rates
-            .map(({ toCurrency, rate }) => `1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}${date !== 'latest' ? ` (on ${date})` : ''}`)
-            .join(" | ");
+        const rate = await fetchRate(fromCurrency, toCurrency, date);
+        const converted = (amount * rate).toFixed(2);
+
+        exchangeRateEl.textContent = `1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}${date !== 'latest' ? ` (on ${date})` : ''}`;
         exchangeRateEl.classList.remove("loading");
 
-        rates.forEach(({ toCurrency, converted }) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${toCurrency}</td>
-                <td>${converted}</td>
-            `;
-            conversionTableEl.appendChild(row);
-        });
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${toCurrency}</td>
+            <td>${converted}</td>
+            <td>${rate.toFixed(4)}</td>
+        `;
+        conversionTableEl.appendChild(row);
 
-        // Update chart for the first selected currency
-        if (toCurrencies.length > 0 && date === 'latest') {
-            const historicalRates = await fetchHistoricalRates(fromCurrency, toCurrencies[0]);
-            updateChart(historicalRates, fromCurrency, toCurrencies[0]);
+        if (date === 'latest' && fromCurrency !== toCurrency) {
+            const historicalRates = await fetchHistoricalRates(fromCurrency, toCurrency);
+            updateChart(historicalRates, fromCurrency, toCurrency);
         } else {
             rateChart && rateChart.destroy();
         }
@@ -206,7 +186,7 @@ async function updateRate() {
         exchangeRateEl.classList.remove("loading");
         let errorMsg = `Failed to fetch exchange rate: ${error.message}. Please try again.`;
         if (error.message.includes("422")) {
-            errorMsg = "Invalid currency selection or date. Please check your inputs.";
+            errorMsg = "Invalid currency selection or date. Please select different currencies or check the date.";
         }
         showError(errorMsg);
     }
@@ -214,6 +194,8 @@ async function updateRate() {
 
 function updateChart(historicalRates, fromCurrency, toCurrency) {
     if (rateChart) rateChart.destroy();
+    if (historicalRates.length === 0) return;
+
     rateChart = new Chart(rateChartEl, {
         type: 'line',
         data: {
@@ -229,9 +211,23 @@ function updateChart(historicalRates, fromCurrency, toCurrency) {
         },
         options: {
             responsive: true,
+            plugins: {
+                zoom: {
+                    zoom: {
+                        wheel: { enabled: true },
+                        pinch: { enabled: true },
+                        mode: 'xy'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 12 }
+                }
+            },
             scales: {
-                x: { title: { display: true, text: 'Date' } },
-                y: { title: { display: true, text: 'Exchange Rate' } }
+                x: { title: { display: true, text: 'Date', font: { size: 14 } } },
+                y: { title: { display: true, text: 'Exchange Rate', font: { size: 14 } } }
             }
         }
     });
@@ -245,9 +241,8 @@ function showError(message) {
 
 function swapCurrencies() {
     const temp = currencyFirstEl.value;
-    const toCurrencies = Array.isArray(currencySecondEl.value) ? currencySecondEl.value : (currencySecondEl.value ? [currencySecondEl.value] : ["EUR"]);
-    choicesFirst.setChoiceByValue(toCurrencies[0] || "EUR");
-    choicesSecond.setChoiceByValue([temp]);
+    choicesFirst.setChoiceByValue(currencySecondEl.value || "EUR");
+    choicesSecond.setChoiceByValue(temp);
     updateRate();
 }
 
@@ -260,13 +255,46 @@ function toggleTheme() {
     localStorage.setItem("theme", nextTheme);
 }
 
-// Event listeners
+function toggleFavorite() {
+    const favorites = JSON.parse(localStorage.getItem("favoriteCurrencies") || "[]");
+    const fromCurrency = currencyFirstEl.value;
+    const toCurrency = currencySecondEl.value;
+    const selectedCurrencies = [fromCurrency, toCurrency].filter(Boolean);
+
+    selectedCurrencies.forEach(code => {
+        if (favorites.includes(code)) {
+            favorites.splice(favorites.indexOf(code), 1);
+        } else if (favorites.length < 10) {
+            favorites.push(code);
+        }
+    });
+
+    localStorage.setItem("favoriteCurrencies", JSON.stringify(favorites));
+    populateCurrencies();
+    showError(`Favorites updated: ${favorites.join(", ") || "None"}`);
+}
+
+// Mock WebSocket for real-time updates
+function startMockWebSocket() {
+    setInterval(async () => {
+        if (!datePickerEl.value) {
+            await updateRate();
+            showError("Rates updated in real-time");
+        }
+    }, 30000);
+}
+
+// Event Listeners
 currencyFirstEl.addEventListener("change", updateRate);
 currencySecondEl.addEventListener("change", updateRate);
-worthFirstEl.addEventListener("input", updateRate);
+worthFirstEl.addEventListener("input", () => {
+    if (worthFirstEl.value < 0) worthFirstEl.value = 0;
+    updateRate();
+});
 datePickerEl.addEventListener("change", updateRate);
 swapButton.addEventListener("click", swapCurrencies);
 themeToggleEl.addEventListener("click", toggleTheme);
+favoritesButtonEl.addEventListener("click", toggleFavorite);
 
 // Auto-refresh rates every 60 seconds
 let rateInterval;
@@ -283,15 +311,13 @@ datePickerEl.addEventListener("change", () => {
 
 // Initialize
 async function init() {
-    // Load saved theme
     const savedTheme = localStorage.getItem("theme") || "auto";
     document.body.classList.add(`${savedTheme}-theme`);
-
-    // Show container with animation
     document.querySelector(".container").classList.remove("hidden");
 
     await populateCurrencies();
     await updateRate();
     startAutoRefresh();
+    startMockWebSocket();
 }
 init();

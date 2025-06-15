@@ -4,68 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Currency Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet"/>
 </head>
 <body class="auto-theme">
     <div class="container hidden">
-        <div class="header">
+        <header class="header">
             <h1>Pro Currency Converter</h1>
             <div class="header-controls">
-                <button id="theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                </button>
+                <button id="favorites-button" title="Manage Favorites">⭐</button>
+                <button id="theme-toggle" title="Toggle Theme">🌙</button>
             </div>
-        </div>
-        <div class="currency-container">
+        </header>
+
+        <section class="card currency-container">
             <div class="currency-box">
                 <label for="currency-first">From Currency</label>
-                <select id="currency-first" aria-label="Select source currency"></select>
+                <select id="currency-first"></select>
             </div>
-            <button id="swap-button" title="Swap currencies" aria-label="Swap currencies">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M7 17L17 7M7 7h10v10"/>
-                </svg>
-            </button>
+            <button id="swap-button" title="Swap Currencies">🔄</button>
             <div class="currency-box">
                 <label for="currency-second">To Currency</label>
-                <select id="currency-second" multiple aria-label="Select target currencies"></select>
+                <select id="currency-second"></select>
             </div>
-        </div>
-        <div class="amount-container">
+        </section>
+
+        <section class="card amount-container">
             <div class="amount-box">
                 <label for="worth-first">Amount</label>
-                <input type="number" id="worth-first" value="1" min="0" step="0.01" aria-label="Enter amount">
+                <input type="number" id="worth-first" value="1" min="0" step="0.01">
             </div>
             <div class="amount-box">
-                <label for="worth-second">Converted Amounts</label>
-                <table id="conversion-table" aria-label="Conversion results">
+                <label>Converted Amount</label>
+                <table id="conversion-table">
                     <thead>
                         <tr>
                             <th>Currency</th>
                             <th>Amount</th>
+                            <th>Rate (1 Base)</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-        </div>
-        <div class="date-container">
+        </section>
+
+        <section class="card date-container">
             <label for="date-picker">Historical Rate (Optional)</label>
-            <input type="date" id="date-picker" max="2025-06-14" aria-label="Select date for historical rates">
-        </div>
-        <div class="chart-container">
-            <canvas id="rate-chart" aria-label="Historical exchange rate chart"></canvas>
-        </div>
-        <p id="exchange-rate">Loading exchange rate...</p>
-        <div id="error-message" class="hidden error" role="alert">Failed to fetch exchange rate. Please try again.</div>
-        <footer>Powered by <a href="https://www.frankfurter.app/" target="_blank">Frankfurter API</a></footer>
+            <input type="date" id="date-picker" max="2025-06-14">
+        </section>
+
+        <section class="card chart-container">
+            <canvas id="rate-chart"></canvas>
+        </section>
+
+        <section class="card exchange-rate-container">
+            <div id="exchange-rate" class="exchange-rate">Loading exchange rate...</div>
+        </section>
+
+        <div id="error-message" class="error hidden">Failed to fetch exchange rate. Please try again.</div>
+
+       
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
     <script src="index.js"></script>
 </body>
 </html>
